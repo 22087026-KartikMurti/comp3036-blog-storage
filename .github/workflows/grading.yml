@@ -1,0 +1,66 @@
+name: Autograding Tests
+"on":
+  - push
+  - workflow_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    env:
+      # For recording and parallelization to work you must set your CYPRESS_RECORD_KEY
+      # in GitHub repo → Settings → Secrets → Actions
+      COURSE: full-stack-development-comp3036-2025
+      E2E: true
+      CI: true
+      DATABASE_URL: file:./dev.db
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PASSWORD: 123
+      JWT_SECRET: secret
+      SKIP_ENV_VALIDATION: true
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 8
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install PNPM 📦
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install dependencies 🧪
+        run: pnpm install
+      - name: Install Playwright Browsers
+        run: pnpm playwright install chromium --with-deps
+      - name: Build the project 🏗
+        run: pnpm build
+
+      ####################
+      # Playwright
+      ####################
+      - name: Exercise - Pages
+        id: npm1
+        uses: WesternSydneyUniversity/autograding-command-grader@v3
+        continue-on-error: true
+        with:
+          working-directory: tests/playwright
+          test-name: Exercise
+          courseId: ${{env.COURSE}}
+          sectionId: exercise-cookies-and-storage-in-authentication-and-authorisation
+          command: pnpm test"
+          timeout: 10
+          max-score: 1
+
+      - name: Autograding Reporter
+        uses: education/autograding-grading-reporter@v1
+        env:
+          NPM1_RESULTS: "${{steps.npm1.outputs.result}}"
+        with:
+          runners: npm1
