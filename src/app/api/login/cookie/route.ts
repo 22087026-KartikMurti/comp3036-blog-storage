@@ -13,8 +13,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const cookieStore = await cookies();
 
   if (process.env.PASSWORD !== body.password) {
-    return NextResponse.json({ message: "Invalid password" }, { status: 401 });
+    return NextResponse.json({ message: "Invalid username or password" }, { status: 401 });
   }
 
-  return NextResponse.json({ message: "Logged in!" }, { status: 200 });
+  cookieStore.set({
+    name: "session_id",
+    value: "abc789xyz",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 60 * 60, // 1 hour
+  });
+
+  return NextResponse.json({ message: "Admin access granted to Tomas" }, { status: 200 });
 }
