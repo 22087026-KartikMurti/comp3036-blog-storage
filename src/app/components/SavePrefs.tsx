@@ -7,6 +7,12 @@ export default function SavePrefs() {
   useEffect(() => {
     // TODO: Save 'prefs' as 'tag:tech' in localStorage when component mounts
     // Then, read it back and set it to state
+    let savedPrefs = localStorage.getItem("prefs");
+    if (savedPrefs == null) {
+      savedPrefs = "tag:tech";
+      localStorage.setItem("prefs", savedPrefs);
+    }
+    setPrefs(savedPrefs);
   }, []);
 
   return (
